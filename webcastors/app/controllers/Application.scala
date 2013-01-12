@@ -58,17 +58,21 @@ object Application extends Controller {
     )
   ) tupled
 
-  val WritesToMongo = __.json.modify(
-    (__ \ "created").json.transform( js => Json.obj("$date" -> js) )
+  val WritesToMongo = __.json.pick.transform(
+    (__ \ "created").json.pick.transform( js => Json.obj("$date" -> js) )
   )
+
+  /*__.json.modify(
+    (__ \ "created").json.transform( js => Json.obj("$date" -> js) )
+  )*/
 
   val WritesToWeb = (
     (__ \ "type").json.put(JsString("castor")) and 
     (__ \ "data").json.put(
-      __.json.modify ( 
-        (__ \ "created").json.transform( js => js \ "$date" )
+      __.json.pick.transform( 
+        (__ \ "created").json.pick.transform( js => Json.obj("$date" -> js) )
       )
-    ) 
+    )
   ) join
 
   def watchCastors = WebSocket.async[JsValue] { implicit request => 
