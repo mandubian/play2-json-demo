@@ -120,7 +120,7 @@ object Application extends Controller {
         persons.insert(jsobj).map{ p => 
           Ok( resOK(jsobj.transform(fromObjectId).get) )
         }.recover{ case e => 
-          BadRequest( resKO(JsString("exception %s".format(e.getMessage))) )
+          InternalServerError( resKO(JsString("exception %s".format(e.getMessage))) )
         }
       }
     }.recoverTotal{ err => 
@@ -132,12 +132,12 @@ object Application extends Controller {
     val q = QueryBuilder().query(toObjectId.writes(id))
     Async {
       persons.find[JsValue](q).headOption.map{ 
-        case None => Ok(Json.obj("res" -> "KO", "error" -> s"person with ID $id not found"))
+        case None => NotFound(Json.obj("res" -> "KO", "error" -> s"person with ID $id not found"))
         case Some(p) => 
           p.transform(outputPerson).map{ jsonp =>
             Ok( resOK(Json.obj("person" -> jsonp)) )    
           }.recoverTotal{ e =>
-            Ok( resKO(JsError.toFlatJson(e)) )    
+            BadRequest( resKO(JsError.toFlatJson(e)) )    
           }
       }
     }
@@ -154,7 +154,7 @@ object Application extends Controller {
             if(lastError.ok)
               Ok( resOK(Json.obj("msg" -> s"person $id updated")) )
             else     
-              BadRequest( resKO(JsString("error %s".format(lastError.stringify))) )
+              InternalServerError( resKO(JsString("error %s".format(lastError.stringify))) )
           }
         }
       }
@@ -174,7 +174,7 @@ object Application extends Controller {
             if(lastError.ok)
               Ok( resOK(Json.obj("msg" -> s"person $id updated")) )
             else     
-              BadRequest( resKO(JsString("error %s".format(lastError.stringify))) )
+              InternalServerError( resKO(JsString("error %s".format(lastError.stringify))) )
           }
         }
       }
@@ -189,7 +189,7 @@ object Application extends Controller {
         if(lastError.ok)
           Ok( resOK(Json.obj("msg" -> s"person $id deleted")) )
         else     
-          BadRequest( resKO(JsString("error %s".format(lastError.stringify))) )
+          InternalServerError( resKO(JsString("error %s".format(lastError.stringify))) )
       }
     }
   }
